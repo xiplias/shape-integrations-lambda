@@ -1,0 +1,26 @@
+{
+  "name": "shape-integrations-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiplias/shape-integrations-lambda.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xiplias/shape-integrations-lambda/issues"
+  },
+  "homepage": "https://github.com/xiplias/shape-integrations-lambda#readme",
+  "devDependencies": {
+    "lambda-local": "^1.4.2",
+    "mocha": "^3.4.2",
+    "mocha-better-spec-reporter": "^3.1.0",
+    "prettier": "^1.3.1"
+  }
+}
