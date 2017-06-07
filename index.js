@@ -3,9 +3,9 @@
 const fs = require('fs')
 const path = require('path')
 const aws = require('aws-sdk')
+const core = require('shape-integrations-core')
 const s3 = new aws.S3()
 
-const core = require('shape-integrations-core')
 const request = require('./lib/request')
 const successResponse = request.successResponse
 const failureResponse = request.failureResponse
