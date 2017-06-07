@@ -128,10 +128,3 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
   }
   return handlers
 }
-
-const projectsDir =
-  process.env.PROJECTS_PATH || path.resolve(__dirname, 'tests', 'projects')
-
-const lambdaHandlers = Integration.makeLambdaHandlers(projectsDir)
-
-Object.assign(module.exports, lambdaHandlers)
