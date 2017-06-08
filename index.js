@@ -37,7 +37,7 @@ module.exports.projectDetails = function(event, context) {
     adminPassword,
     function(err, project) {
       if (err) return failureResponse(context, err)
-      successResponse(context, {project})
+      successResponse(context, project)
     }
   )
 }
