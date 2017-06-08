@@ -13,7 +13,7 @@ const projectsDir =
   process.env.PROJECT_DIR || path.resolve(__dirname, 'projects')
 
 module.exports.projects = function(event, context) {
-  const headers = context.headers || {}
+  const headers = event.headers || {}
   const requestPassword = headers.Authorization
 
   functions.projects(projectsDir, requestPassword, adminPassword, function(
@@ -26,7 +26,7 @@ module.exports.projects = function(event, context) {
 }
 
 module.exports.projectDetails = function(event, context) {
-  const headers = context.headers || {}
+  const headers = event.headers || {}
   const projectIdentifier = (event.pathParameters || {}).projectId.toLowerCase()
   const requestPassword = headers.Authorization
 
@@ -43,7 +43,7 @@ module.exports.projectDetails = function(event, context) {
 }
 
 module.exports.runTest = function(event, context) {
-  const headers = context.headers || {}
+  const headers = event.headers || {}
   const pathParameters = event.pathParameters || {}
 
   const projectIdentifier = (pathParameters.projectId || '').toLowerCase()
