@@ -2,129 +2,63 @@
 
 const fs = require('fs')
 const path = require('path')
-const aws = require('aws-sdk')
-const core = require('shape-integrations-core')
-const s3 = new aws.S3()
-
 const request = require('./lib/request')
+const functions = require('./functions')
+
 const successResponse = request.successResponse
 const failureResponse = request.failureResponse
-const accessValidation = request.accessValidation
 
-module.exports.makeLambdaHandlers = function(projectsDir) {
-  const handlers = {
-    lambdaGetAllProjects: function(event, context) {
-      const accessKey = (event.pathParameters || {}).accessKey
+const adminPassword = process.env.ALL_ACCESS_PASSWORD
+const projectsDir =
+  process.env.PROJECT_DIR || path.resolve(__dirname, 'projects')
 
-      const path = event.path
-      console.log('path:', path)
+module.exports.projects = function(event, context) {
+  const headers = context.headers || {}
+  const requestPassword = headers.Authorization
 
-      core.getAllProjects(projectsDir, function(err, projects) {
-        if (err) return failureResponse(context, err)
-        successResponse(context, {projects: projects})
-      })
-    },
-    lambdaGetProjectDetails: function(event, context) {
-      const pathParameters = event.pathParameters || {projectId: ''}
-      const projectIdentifier = pathParameters.projectId.toLowerCase()
-      console.log('projectId:', projectIdentifier)
+  functions.projects(projectsDir, requestPassword, adminPassword, function(
+    err,
+    projects
+  ) {
+    if (err) return failureResponse(context, err)
+    successResponse(context, {projects})
+  })
+}
 
-      core.getProject(projectsDir, projectIdentifier, function(err, project) {
-        if (err) return failureResponse(context, err)
-        if (!project) {
-          return failureResponse(
-            context,
-            new Error('Unknown project identifier: ' + projectIdentifier),
-            400
-          )
-        }
+module.exports.projectDetails = function(event, context) {
+  const headers = context.headers || {}
+  const projectIdentifier = (event.pathParameters || {}).projectId.toLowerCase()
+  const requestPassword = headers.Authorization
 
-        accessValidation(
-          pathParameters.accessKey,
-          process.env.ALL_ACCESS_PASSWORD,
-          project.accessKey,
-          function(err) {
-            if (err) {
-              failureResponse(context, new Error('Access denied'))
-              return
-            }
-
-            core.getTestsForProject(projectsDir, projectIdentifier, function(
-              err,
-              tests
-            ) {
-              if (err) return failureResponse(context, err)
-              project.tests = tests
-              successResponse(context, project)
-            })
-          }
-        )
-      })
-    },
-    lambdaPostRunTest: function(event, context) {
-      const pathParameters = event.pathParameters || {
-        projectId: '',
-        testId: ''
-      }
-      const projectIdentifier = pathParameters.projectId.toLowerCase()
-      console.log('projectId:', projectIdentifier)
-      const testIdentifier = pathParameters.testId
-      console.log('testIdentifier:', testIdentifier)
-      const accessKey = pathParameters.accessKey
-      const testResultsBucket = process.env.TEST_RESULTS_BUCKET
-
-      const projectDescriptor = core.getProjectDescriptor(
-        projectsDir,
-        projectIdentifier
-      )
-
-      accessValidation(
-        pathParameters.accessKey,
-        process.env.ALL_ACCESS_PASSWORD,
-        projectDescriptor.accessKey,
-        function(err) {
-          if (err) {
-            failureResponse(context, new Error('Access denied'))
-            return
-          }
-
-          core.runTest(projectsDir, projectIdentifier, testIdentifier, function(
-            err,
-            res
-          ) {
-            if (err) return failureResponse(context, err)
-
-            const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
-            const resultPath = resultFolder + Date.now() + '-result.json'
-            const resultLatestPath = resultFolder + 'latest-result.json'
-
-            const saveToBucket = function(path, callback) {
-              if (process.env.LOCAL) {
-                console.log(res)
-                callback(null)
-              } else {
-                s3.putObject(
-                  {
-                    Bucket: testResultsBucket,
-                    Key: path,
-                    Body: JSON.stringify(res)
-                  },
-                  callback
-                )
-              }
-            }
-
-            saveToBucket(resultPath, function(err, putRes) {
-              if (err) return failureResponse(context, err)
-              saveToBucket(resultLatestPath, function(err, putRes) {
-                if (err) return failureResponse(context, err)
-                successResponse(context, res, 201)
-              })
-            })
-          })
-        }
-      )
+  functions.projectDetails(
+    projectsDir,
+    projectIdentifier,
+    requestPassword,
+    adminPassword,
+    function(err, project) {
+      if (err) return failureResponse(context, err)
+      successResponse(context, {project})
     }
-  }
-  return handlers
+  )
+}
+
+module.exports.runTest = function(event, context) {
+  const headers = context.headers || {}
+  const pathParameters = event.pathParameters || {}
+
+  const projectIdentifier = (pathParameters.projectId || '').toLowerCase()
+  const testIdentifier = pathParameters.testId
+  const requestPassword = headers.Authorization
+
+  functions.runTest(
+    projectsDir,
+    projectIdentifier,
+    testIdentifier,
+    requestPassword,
+    adminPassword,
+    function(err, result) {
+      if (err) return failureResponse(context, err)
+      successResponse(context, {result})
+    }
+  )
 }
