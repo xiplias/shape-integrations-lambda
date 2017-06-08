@@ -1,0 +1,89 @@
+# Welcome to serverless. Read the docs
+# https://serverless.com/framework/docs/
+
+# Serverless.yml is the configuration the CLI
+# uses to deploy your code to your provider of choice
+
+# The `service` block is the name of the service
+service: shape-integrations
+
+# The `provider` block defines where your service will be deployed
+provider:
+  name: aws
+  runtime: nodejs6.10
+  region: eu-west-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+        - "s3:PutObject"
+      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "TestResultBucket" } ] ]  }
+functions:
+  listInput:
+    handler: handler.listInput
+    events:
+      - http:
+          path: input
+          method: get
+          cors: true
+    environment:
+      TEST_RESULTS_BUCKET:
+        { "Ref": "TestResultBucket" }
+      TEST_RESULTS_URL:
+        Fn::GetAtt:
+          - TestResultBucket
+          - WebsiteURL
+  projects:
+    handler: index.projects
+    events:
+      - http:
+          path: projects
+          method: get
+          cors: true
+  projectDetails:
+    handler: index.projectDetails
+    events:
+      - http:
+          path: projects/{projectId}
+          method: get
+          cors: true
+  runTest:
+    handler: index.runTest
+    events:
+      - http:
+          path: projects/{projectId}/tests/{testId}/run
+          method: post
+          cors: true
+    environment:
+      TEST_RESULTS_URL:
+        Fn::GetAtt:
+          - TestResultBucket
+          - WebsiteURL
+resources:
+  Resources:
+    TestResultBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+    TestResultBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: TestResultBucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+              - Fn::Join:
+                - ''
+                - - 'arn:aws:s3:::'
+                  - Ref: TestResultBucket
+                  - "/*"
