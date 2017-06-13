@@ -18,13 +18,13 @@
   },
   "homepage": "https://github.com/xiplias/shape-integrations-lambda#readme",
   "dependencies": {
-    "aws-sdk": "^2.50.0",
+    "aws-sdk": "^2.68.0",
     "shape-integrations-core": "github:olegam/shape-integrations"
   },
   "devDependencies": {
     "lambda-local": "^1.4.2",
     "mocha": "^3.4.2",
     "mocha-better-spec-reporter": "^3.1.0",
-    "prettier": "^1.4.2"
+    "prettier": "^1.4.4"
   }
 }
