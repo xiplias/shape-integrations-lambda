@@ -90,7 +90,7 @@ module.exports.runTest = function(
         const resultPath = resultFolder + Date.now() + '-result.json'
         const resultLatestPath = resultFolder + 'latest-result.json'
 
-        if (process.env.LOCAL) {
+        if (!process.env.LOCAL) {
           saveToBucket(resultPath, res, function(err, putRes) {
             if (err) return cb(err)
             saveToBucket(resultLatestPath, res, function(err, putRes) {
