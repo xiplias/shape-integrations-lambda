@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/xiplias/shape-integrations-lambda#readme",
   "dependencies": {
-    "aws-sdk": "^2.69.0",
+    "aws-sdk": "^2.75.0",
     "jsonwebtoken": "^7.4.1",
     "shape-integrations-core": "github:olegam/shape-integrations"
   },
