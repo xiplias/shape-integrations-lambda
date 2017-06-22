@@ -27,27 +27,7 @@ const lambdaExecute = function(func, params, requestPassword, cb) {
 }
 
 describe('lambda functions', () => {
-  describe('lambdaGetAllProjects', () => {
-    it('allAccessPassword should grant access', done => {
-      lambdaExecute('projects', {}, 'test1', function(err, data) {
-        assert.equal(data.statusCode, 200)
-        done()
-      })
-    })
-  })
-
   describe('lambdaGetProjectDetails', () => {
-    it('allAccessPassword should grant access', done => {
-      const params = {
-        projectId: 'jsonplaceholder'
-      }
-
-      lambdaExecute('projectDetails', params, 'test1', function(err, data) {
-        assert.equal(data.statusCode, 200)
-        done()
-      })
-    })
-
     it('project specific password should grant access', done => {
       const params = {
         projectId: 'jsonplaceholder'
@@ -75,18 +55,6 @@ describe('lambda functions', () => {
   })
 
   describe('lambdaPostRunTest', () => {
-    it('allAccessPassword should grant access', done => {
-      const params = {
-        projectId: 'jsonplaceholder',
-        testId: 'users'
-      }
-
-      lambdaExecute('runTest', params, 'test1', function(err, data) {
-        assert.equal(data.statusCode, 200)
-        done()
-      })
-    })
-
     it('project specific password should grant access', done => {
       const params = {
         projectId: 'jsonplaceholder',

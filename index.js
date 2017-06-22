@@ -16,12 +16,9 @@ module.exports.projects = function(event, context) {
   const headers = event.headers || {}
   const requestPassword = headers.Authorization
 
-  functions.projects(projectsDir, requestPassword, adminPassword, function(
-    err,
-    projects
-  ) {
+  functions.projects(projectsDir, requestPassword, function(err, projects) {
     if (err) return failureResponse(context, err)
-    successResponse(context, {projects})
+    successResponse(context, { projects })
   })
 }
 
@@ -34,7 +31,6 @@ module.exports.projectDetails = function(event, context) {
     projectsDir,
     projectIdentifier,
     requestPassword,
-    adminPassword,
     function(err, project) {
       if (err) return failureResponse(context, err)
       successResponse(context, project)
@@ -55,10 +51,9 @@ module.exports.runTest = function(event, context) {
     projectIdentifier,
     testIdentifier,
     requestPassword,
-    adminPassword,
     function(err, result) {
       if (err) return failureResponse(context, err)
-      successResponse(context, {result})
+      successResponse(context, { result })
     }
   )
 }

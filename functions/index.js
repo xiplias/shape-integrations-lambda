@@ -7,13 +7,8 @@ const s3 = new aws.S3()
 
 const bucket = process.env.TEST_RESULTS_BUCKET
 
-module.exports.projects = function(
-  projectsDir,
-  requestPassword,
-  adminPassword,
-  cb
-) {
-  auth.accessValidation(requestPassword, adminPassword, function(err) {
+module.exports.projects = function(projectsDir, requestPassword, cb) {
+  auth.accessValidation(requestPassword, function(err) {
     if (err) {
       cb(new Error('Access denied'))
       return
@@ -30,7 +25,6 @@ module.exports.projectDetails = function(
   projectsDir,
   projectIdentifier,
   requestPassword,
-  adminPassword,
   cb
 ) {
   core.getProject(projectsDir, projectIdentifier, function(err, project) {
@@ -40,23 +34,18 @@ module.exports.projectDetails = function(
       return cb(new Error('Unknown project identifier: ' + projectIdentifier))
     }
 
-    auth.accessValidation(
-      requestPassword,
-      adminPassword,
-      project.accessKey,
-      function(err) {
-        if (err) return cb(new Error('Access denied'))
+    auth.accessValidation(requestPassword, project.accessKey, function(err) {
+      if (err) return cb(new Error('Access denied'))
 
-        core.getTestsForProject(projectsDir, projectIdentifier, function(
-          err,
-          tests
-        ) {
-          if (err) return cb(err)
-          project.tests = tests
-          cb(null, project)
-        })
-      }
-    )
+      core.getTestsForProject(projectsDir, projectIdentifier, function(
+        err,
+        tests
+      ) {
+        if (err) return cb(err)
+        project.tests = tests
+        cb(null, project)
+      })
+    })
   })
 }
 
@@ -65,7 +54,6 @@ module.exports.runTest = function(
   projectIdentifier,
   testIdentifier,
   requestPassword,
-  adminPassword,
   cb
 ) {
   const projectDescriptor = core.getProjectDescriptor(
@@ -73,37 +61,34 @@ module.exports.runTest = function(
     projectIdentifier
   )
 
-  auth.accessValidation(
-    requestPassword,
-    adminPassword,
-    projectDescriptor.accessKey,
-    function(err) {
-      if (err) return cb(new Error('Access denied'))
+  auth.accessValidation(requestPassword, projectDescriptor.accessKey, function(
+    err
+  ) {
+    if (err) return cb(new Error('Access denied'))
 
-      core.runTest(projectsDir, projectIdentifier, testIdentifier, function(
-        err,
-        res
-      ) {
-        if (err) return cb(err)
+    core.runTest(projectsDir, projectIdentifier, testIdentifier, function(
+      err,
+      res
+    ) {
+      if (err) return cb(err)
 
-        const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
-        const resultPath = resultFolder + Date.now() + '-result.json'
-        const resultLatestPath = resultFolder + 'latest-result.json'
+      const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
+      const resultPath = resultFolder + Date.now() + '-result.json'
+      const resultLatestPath = resultFolder + 'latest-result.json'
 
-        if (!process.env.LOCAL) {
-          saveToBucket(resultPath, res, function(err, putRes) {
+      if (!process.env.LOCAL) {
+        saveToBucket(resultPath, res, function(err, putRes) {
+          if (err) return cb(err)
+          saveToBucket(resultLatestPath, res, function(err, putRes) {
             if (err) return cb(err)
-            saveToBucket(resultLatestPath, res, function(err, putRes) {
-              if (err) return cb(err)
-              cb(null, res)
-            })
+            cb(null, res)
           })
-        } else {
-          cb(null, res)
-        }
-      })
-    }
-  )
+        })
+      } else {
+        cb(null, res)
+      }
+    })
+  })
 }
 
 const saveToBucket = function(path, data, callback) {
