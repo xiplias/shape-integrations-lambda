@@ -4,7 +4,7 @@
   "description": "API for shape integration on Amazon Lambda",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests"
+    "test": "LOCAL=true mocha tests"
   },
   "engines": {
     "node": "6.10.0",
