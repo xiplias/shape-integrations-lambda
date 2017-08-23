@@ -58,37 +58,40 @@ module.exports.runTest = function(
 ) {
   const projectDescriptor = core.getProjectDescriptor(
     projectsDir,
-    projectIdentifier
-  )
-
-  auth.accessValidation(requestPassword, projectDescriptor.accessKey, function(
-    err
-  ) {
-    if (err) return cb(new Error('Access denied'))
-
-    core.runTest(projectsDir, projectIdentifier, testIdentifier, function(
-      err,
-      res
-    ) {
+    projectIdentifier,
+    function(err, descriptor) {
       if (err) return cb(err)
 
-      const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
-      const resultPath = resultFolder + Date.now() + '-result.json'
-      const resultLatestPath = resultFolder + 'latest-result.json'
+      auth.accessValidation(requestPassword, descriptor.accessKey, function(
+        err
+      ) {
+        if (err) return cb(new Error('Access denied'))
 
-      if (!process.env.LOCAL) {
-        saveToBucket(resultPath, res, function(err, putRes) {
+        core.runTest(projectsDir, projectIdentifier, testIdentifier, function(
+          err,
+          res
+        ) {
           if (err) return cb(err)
-          saveToBucket(resultLatestPath, res, function(err, putRes) {
-            if (err) return cb(err)
+
+          const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
+          const resultPath = resultFolder + Date.now() + '-result.json'
+          const resultLatestPath = resultFolder + 'latest-result.json'
+
+          if (!process.env.LOCAL) {
+            saveToBucket(resultPath, res, function(err, putRes) {
+              if (err) return cb(err)
+              saveToBucket(resultLatestPath, res, function(err, putRes) {
+                if (err) return cb(err)
+                cb(null, res)
+              })
+            })
+          } else {
             cb(null, res)
-          })
+          }
         })
-      } else {
-        cb(null, res)
-      }
-    })
-  })
+      })
+    }
+  )
 }
 
 const saveToBucket = function(path, data, callback) {
